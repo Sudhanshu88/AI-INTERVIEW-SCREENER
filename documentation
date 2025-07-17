@@ -1,0 +1,89 @@
+# AI Interview Screener - Design Document
+
+## Overall Architecture
+
+### High-Level System Design
+The application follows a microservices-oriented architecture with clear separation of concerns:
+
+**Frontend (React)** ↔ **Backend API (FastAPI)** ↔ **AI Services** ↔ **Voice Services** ↔ **Storage**
+
+### Core Components
+1. **Web Frontend**: React-based dashboard for campaign management and results viewing
+2. **API Gateway**: FastAPI backend handling all business logic and orchestration
+3. **AI Processing Engine**: OpenAI/Claude integration for question generation and candidate scoring
+4. **Voice Communication System**: Real-time TTS/STT integration for live interviews
+5. **Data Storage**: PostgreSQL for structured data, cloud storage for audio files
+6. **Call Management**: Twilio/similar for actual phone call handling
+
+## Data Design Summary
+
+### Core Entities
+- **Campaigns**: Job description, generated questions, status, created timestamp
+- **Candidates**: Name, phone, email, campaign association, call status
+- **Interviews**: Campaign-candidate relationship, audio files, transcripts, scores
+- **Questions**: AI-generated questions per campaign with expected answer criteria
+- **Responses**: Individual candidate answers with audio, transcript, and AI analysis
+
+### Data Flow
+1. JD Upload → AI Question Generation → Campaign Creation
+2. CSV Upload → Candidate Batch Import → Campaign Assignment
+3. Call Initiation → TTS Question Delivery → STT Response Capture
+4. Audio Storage → Transcript Generation → AI Scoring → Dashboard Update
+
+## AI Usage Points
+
+### 1. Question Generation (GPT-4/Claude)
+- Input: Job description text
+- Output: Structured interview questions with evaluation criteria
+- Prompt engineering for role-specific, behavioral, and technical questions
+
+### 2. Response Analysis (GPT-4/Claude)
+- Input: Question + candidate transcript
+- Output: Scored evaluation (communication, technical knowledge, fit)
+- Structured scoring with reasoning and recommendations
+
+### 3. Final Recommendation (GPT-4/Claude)
+- Input: All candidate responses and scores
+- Output: Hire/No-hire recommendation with detailed justification
+- Comparative analysis across candidates
+
+## System Flow
+
+### Campaign Creation Flow
+```
+Upload JD → AI Processing → Question Generation → Campaign Setup → Ready State
+```
+
+### Interview Execution Flow
+```
+Candidate Selection → Call Initiation → TTS Question → Candidate Response → 
+STT Processing → AI Scoring → Next Question → Final Evaluation → Dashboard Update
+```
+
+### Technology Stack
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Zustand for state management
+- **Backend**: FastAPI, Python 3.11, Pydantic for data validation
+- **AI**: OpenAI GPT-4 API for question generation and scoring
+- **Voice**: Twilio for calls, Google Cloud Speech-to-Text, Google Cloud Text-to-Speech
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Storage**: AWS S3 for audio files, Redis for caching
+- **Deployment**: Frontend on Vercel, Backend on Render, Database on Railway
+
+### Key Technical Decisions
+1. **Real-time Processing**: WebSocket connections for live call updates
+2. **Scalable Voice**: Cloud-based TTS/STT for quality and reliability
+3. **AI Prompt Engineering**: Structured prompts for consistent, evaluable responses
+4. **Async Architecture**: FastAPI's async capabilities for handling multiple concurrent calls
+5. **Error Handling**: Comprehensive retry mechanisms and fallback strategies
+
+### Security & Privacy
+- API authentication with JWT tokens
+- Audio file encryption at rest
+- GDPR-compliant data handling
+- Rate limiting and input validation
+
+### Performance Considerations
+- Caching of AI-generated questions
+- Async processing for non-blocking operations
+- Optimized database queries with proper indexing
+- CDN for static assets and audio file delivery
